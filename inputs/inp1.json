@@ -24,7 +24,8 @@
     "Silicon": 10
   },
   "config": {
-    "offline": false
+    "offline": false,
+    "tradingLevel": 10
   },
   "bots": []
 }

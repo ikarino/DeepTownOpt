@@ -18,6 +18,7 @@ proc newMiner*(j: JsonNode): Miner =
   var cs: seq[Crafting]
 
   let offline = j["config"]["offline"].getBool()
+  let tradingLevel = j["config"]["tradingLevel"].getInt().Natural
 
   for node in j["MiningStation"].getElems():
     mss.add(newMiningStation(
@@ -49,7 +50,8 @@ proc newMiner*(j: JsonNode): Miner =
     mss: mss,
     cms: cms,
     cs: cs,
-    offline: offline
+    offline: offline,
+    tradingLevel: tradingLevel
   )
 
 proc tick(miner: Miner) =
@@ -64,4 +66,4 @@ proc calcCoin*(m: Miner, seconds = 60*60*12): float =
   for t in 1..seconds:
     m.tick()
 
-  m.s.toCoin().float / seconds.float
+  m.s.toCoin(m.tradingLevel).float / seconds.float
