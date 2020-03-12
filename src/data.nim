@@ -3,10 +3,17 @@ import tables, strformat, math
 type
   DeepTownError* = object of Exception
   Store* = TableRef[Item, Natural]
+  Building* {.pure.} = enum
+    Smelting = "Smelting"
+    Crafting = "Crafting"
+    Chemistry = "Chemistry"
+    JewelCrafting = "JewelCrafting"
+    Greenhouse = "Greenhouse"
   Recipe* = ref object
     material*: Table[Item, Natural]
     product*: Table[Item, Natural]
     duration*: Natural
+    building*: Building
     unlockArea*: Natural
   Item* {.pure.} = enum
     # available in mining station
@@ -42,7 +49,7 @@ type
     # available in oil pump
     Oil = "Oil"
   
-    # available in greenhouse
+    # available in Greenhouse
     TreeSeed = "TreeSeed"
     LianaSeed = "LianaSeed"
     GrapeSeed = "GrapeSeed"
@@ -132,6 +139,11 @@ type
   
     # available in uranium enrichment
     UraniumRod = "UraniumRod"
+
+
+const MiningStationRpm*: array[9, float] = [3.0, 4.0, 5.0, 6.0, 8.0, 12.0, 15.0, 17.0, 20.0]
+const ChemicalMiningRp10m*: array[4, Natural] = [Natural(5), Natural(7), Natural(15), Natural(20)]
+const BotTaskBoostRate* = 0.1668
 
 proc `$`*(s: Store): string =
   result = "Stored Items:\n"
@@ -239,7 +251,7 @@ proc toCoin* (s: Store, portalLevel: Natural): Natural =
     of Item.PolishedObsidian: result += 280*num
     of Item.SapphireCrystalGlass: result += 5000*num
     of Item.UraniumRod: result += 17_000*num
-    # [TODO] function of trading item values are not confirmed.
+    # [TODO] formula for trading item values must be confirmed.
     of Item.AmberBracelet: result += (215*num.float*(1+0.02*(portalLevel.float-1))).round.Natural
     of Item.EmeraldRing: result += (599*num.float*(1+0.02*(portalLevel.float-1))).round.Natural
     of Item.MayaCalender: result += (4609*num.float*(1+0.02*(portalLevel.float-1))).round.Natural
@@ -262,65 +274,78 @@ let Recipes: Table[Item, Recipe] = {
   Item.CopperBar: Recipe(
     material: { Item.Copper: Natural(5) }.toTable(),
     product: { Item.CopperBar: Natural(1) }.toTable(),
-    duration: 10
+    duration: 10,
+    building: Building.Smelting,
+    unlockArea: 0
   ),
   Item.IronBar: Recipe(
     material: { Item.Iron: Natural(5) }.toTable(),
     product: { Item.IronBar: Natural(1) }.toTable(),
-    duration: 15
+    duration: 15,
+    building: Building.Smelting,
+    unlockArea: 0
   ),
   Item.AluminiumBar: Recipe(
     material: { Item.Aluminium: Natural(5) }.toTable(),
     product: { Item.AluminiumBar: Natural(1) }.toTable(),
     duration: 15,
+    building: Building.Smelting,
     unlockArea: 25
   ),
   Item.Glass: Recipe(
     material: { Item.Silicon: Natural(2) }.toTable(),
     product: { Item.Glass: Natural(1) }.toTable(),
     duration: 60,
+    building: Building.Smelting,
     unlockArea: 13
   ),
   Item.SteelBar: Recipe(
     material: { Item.IronBar: Natural(1), Item.Graphite: Natural(1) }.toTable(),
     product: { Item.SteelBar: Natural(1)}.toTable(),
     duration: 45,
+    building: Building.Smelting,
     unlockArea: 37
   ),
   Item.SilverBar: Recipe(
     material: { Item.Silver: Natural(5) }.toTable(),
     product: { Item.SilverBar: Natural(1) }.toTable(),
     duration: 60,
+    building: Building.Smelting,
     unlockArea: 37
   ),
   Item.Coal: Recipe(
     material: { Item.Tree: Natural(1) }.toTable(),
     product: { Item.Coal: Natural(50) }.toTable(),
     duration: 60,
+    building: Building.Smelting,
     unlockArea: 40
   ),
   Item.GoldBar: Recipe(
     material: { Item.Gold: Natural(5) }.toTable(),
     product: { Item.GoldBar: Natural(1) }.toTable(),
     duration: 60,
+    building: Building.Smelting,
     unlockArea: 49
   ),
   Item.SteelPlate: Recipe(
     material: { Item.SteelBar: Natural(5) }.toTable(),
     product: { Item.SteelPlate: Natural(1) }.toTable(),
     duration: 120,
+    building: Building.Smelting,
     unlockArea: 61
     ),
   Item.TitaniumBar: Recipe(
     material: { Item.Titanium: Natural(5) }.toTable(),
     product: { Item.TitaniumBar: Natural(1) }.toTable(),
     duration: 60,
+    building: Building.Smelting,
     unlockArea: 85
   ),
   Item.MagnetiteBar: Recipe(
     material: {Item.MagnetiteOre: Natural(5)}.toTable(),
     product: {Item.MagnetiteBar: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.Smelting,
     unlockArea: 109
   ),
 
@@ -328,316 +353,393 @@ let Recipes: Table[Item, Recipe] = {
   Item.Graphite: Recipe(
     material: { Item.Coal: Natural(5) }.toTable(),
     product: { Item.Graphite: Natural(1 )}.toTable(),
-    duration: 5
+    duration: 5,
+    building: Building.Crafting,
+    unlockArea: 0
   ),
   Item.CopperNail: Recipe(
     material: { Item.CopperBar: Natural(1) }.toTable(),
     product: { Item.CopperNail: Natural(10) }.toTable(),
-    duration: 20
+    duration: 20,
+    building: Building.Crafting,
+    unlockArea: 0
   ),
   Item.Wire: Recipe(
     material: { Item.CopperBar: Natural(1) }.toTable(),
     product: { Item.Wire: Natural(5) }.toTable(),
-    duration: 30
+    duration: 30,
+    building: Building.Crafting,
+    unlockArea: 0
   ),
   Item.Battery: Recipe(
     material: { Item.Amber: Natural(1), Item.IronBar: Natural(1), Item.CopperBar: Natural(5) }.toTable(),
     product: { Item.Battery: Natural(1) }.toTable(),
     duration: 120,
+    building: Building.Crafting,
     unlockArea: 13
   ),
   Item.Circuits: Recipe(
     material: { Item.IronBar: Natural(10), Item.Graphite: Natural(50), Item.CopperBar: Natural(50) }.toTable(),
     product: { Item.Circuits: Natural(1)}.toTable(),
     duration: 180,
+    building: Building.Crafting,
     unlockArea: 13
   ),
   Item.Lamp: Recipe(
     material: { Item.CopperBar: Natural(5), Item.Wire: Natural(10), Item.Graphite: Natural(20) }.toTable(),
     product: { Item.Lamp: Natural(1) }.toTable(),
     duration: 80,
+    building: Building.Crafting,
     unlockArea: 13
   ),
   Item.LabFlask: Recipe(
     material: { Item.Glass: Natural(1 )}.toTable(),
     product: { Item.LabFlask: Natural(1) }.toTable(),
     duration: 60,
+    building: Building.Crafting,
     unlockArea: 13
   ),
   Item.AmberCharger: Recipe(
     material: { Item.Amber: Natural(5) }.toTable(),
     product: { Item.AmberCharger: Natural(1) }.toTable(),
     duration: 5,
+    building: Building.Crafting,
     unlockArea: 24
   ),
   Item.AluminiumBottle: Recipe(
     material: { Item.AluminiumBar: Natural(1) }.toTable(),
     product: { Item.AluminiumBottle: Natural(1) }.toTable(),
     duration: 30,
+    building: Building.Crafting,
     unlockArea: 24
   ),
   Item.AmberInsulation: Recipe(
     material: { Item.Amber: Natural(10), Item.AluminiumBottle: Natural(1) }.toTable(),
     product: { Item.AmberInsulation: Natural(1) }.toTable(),
     duration: 20,
+    building: Building.Crafting,
     unlockArea: 24
   ),
   Item.InsulatedWire: Recipe(
     material: { Item.Wire: Natural(1), Item.AmberInsulation: Natural(1) }.toTable(),
     product: { Item.InsulatedWire: Natural(1) }.toTable(),
     duration: 200,
+    building: Building.Crafting,
     unlockArea: 24
   ),
   Item.AluminiumTank: Recipe(
     material: { Item.AluminiumBar: Natural(3) }.toTable(),
     product: { Item.AluminiumTank: Natural(1) }.toTable(),
     duration: 120,
+    building: Building.Crafting,
     unlockArea: 37
   ),
   Item.Mirror: Recipe(
     material: { Item.Glass: Natural(1), Item.SilverBar: Natural(1) }.toTable(),
     product: { Item.Mirror: Natural(1 )}.toTable(),
     duration: 120,
+    building: Building.Crafting,
     unlockArea: 37
   ),
   Item.MirrorLasor: Recipe(
     material: { Item.Battery: Natural(1), Item.Lamp: Natural(1), Item.Mirror: Natural(3) }.toTable(),
     product: { Item.MirrorLasor: Natural(1) }.toTable(),
     duration: 120,
+    building: Building.Crafting,
     unlockArea: 37
   ),
   Item.GreenLaser: Recipe(
     material: { Item.PolishedEmerald: Natural(1), Item.InsulatedWire: Natural(1), Item.Lamp: Natural(1) }.toTable(),
     product: { Item.GreenLaser: Natural(5)}.toTable(),
     duration: 20,
+    building: Building.Crafting,
     unlockArea: 53
   ),
   Item.DiamondCutter: Recipe(
     material: { Item.SteelPlate: Natural(1), Item.PolishedDiamond: Natural(5) }.toTable(),
     product: { Item.DiamondCutter: Natural(1 )}.toTable(),
     duration: 30,
+    building: Building.Crafting,
     unlockArea: 61
   ),
   Item.MotherBoard: Recipe(
     material: { Item.Silicon: Natural(3), Item.Circuits: Natural(3), Item.GoldBar: Natural(1 )}.toTable(),
     product: { Item.MotherBoard: Natural(1) }.toTable(),
     duration: 1800,
+    building: Building.Crafting,
     unlockArea: 61
   ),
   Item.SolidPropellant: Recipe(
     material: { Item.Rubber: Natural(3), Item.AluminiumBar: Natural(10 )}.toTable(),
     product: { Item.SolidPropellant: Natural(1) }.toTable(),
     duration: 1200,
+    building: Building.Crafting,
     unlockArea: 61
   ),
   Item.Accumulator: Recipe(
     material: { Item.Sodium: Natural(20), Item.Sulfur: Natural(20) }.toTable(),
     product: { Item.Accumulator: Natural(1) }.toTable(),
     duration: 180,
+    building: Building.Crafting,
     unlockArea: 72
   ),
   Item.SolarPanel: Recipe(
     material: { Item.Rubber: Natural(1), Item.Silicon: Natural(10), Item.Glass: Natural(50) }.toTable(),
     product: { Item.SolarPanel: Natural(1 )}.toTable(),
     duration: 60,
+    building: Building.Crafting,
     unlockArea: 73
   ),
   Item.Gear: Recipe(
     material: { Item.DiamondCutter: Natural(1), Item.TitaniumBar: Natural(1) }.toTable(),
     product: { Item.Gear: Natural(1) }.toTable(),
     duration: 80,
+    building: Building.Crafting,
     unlockArea: 85
   ),
   Item.Bomb: Recipe(
     material: { Item.SteelBar: Natural(5), Item.GunPowder: Natural(10) }.toTable(),
     product: { Item.Bomb: Natural(1) }.toTable(),
     duration: 180,
+    building: Building.Crafting,
     unlockArea: 96
   ),
   Item.Compressor: Recipe(
     material: { Item.IronBar: Natural(5), Item.Rubber: Natural(1), Item.RefinedOil: Natural(2) }.toTable(),
     product: { Item.Compressor: Natural(1) }.toTable(),
     duration: 180,
+    building: Building.Crafting,
     unlockArea: 86
   ),
   Item.OpticFiber: Recipe(
     material: { Item.PlasticPlate: Natural(1), Item.Oxygen: Natural(10), Item.Silicon: Natural(10) }.toTable(),
     product: { Item.OpticFiber: Natural(10) }.toTable(),
     duration: 120,
+    building: Building.Crafting,
     unlockArea: 96
   ),
   Item.CleanWater: Recipe(
     material: {Item.LabFlask: Natural(1), Item.Water: Natural(1)}.toTable(),
     product: {Item.CleanWater: Natural(1)}.toTable(),
     duration: 10*60,
+    building: Building.Chemistry,
     unlockArea: 13
   ),
   Item.Hydrogen: Recipe(
     material: {Item.CleanWater: Natural(1)}.toTable(),
     product: {Item.Hydrogen: Natural(2), Item.Oxygen: Natural(1)}.toTable(),
     duration: 15*60,
+    building: Building.Chemistry,
     unlockArea: 13
   ),
   Item.Rubber: Recipe(
     material: {Item.Liana: Natural(1)}.toTable(),
     product: {Item.Rubber: Natural(2)}.toTable(),
     duration: 30*60,
+    building: Building.Chemistry,
     unlockArea: 61
   ),
   Item.SulfuricAcid: Recipe(
     material: {Item.Sulfur: Natural(2), Item.CleanWater: Natural(1)}.toTable(),
     product: {Item.SulfuricAcid: Natural(1)}.toTable(),
     duration: 30*60,
+    building: Building.Chemistry,
     unlockArea: 61
   ),
   Item.Ethanol: Recipe(
     material: {Item.AluminiumBottle: Natural(1), Item.Grape: Natural(2)}.toTable(),
     product: {Item.Ethanol: Natural(1)}.toTable(),
     duration: 30*60,
+    building: Building.Chemistry,
     unlockArea: 61
   ),
   Item.RefinedOil: Recipe(
     material: {Item.Oil: Natural(10), Item.Hydrogen: Natural(10), Item.LabFlask: Natural(1)}.toTable(),
     product: {Item.RefinedOil: Natural(1)}.toTable(),
     duration: 30*60,
+    building: Building.Chemistry,
     unlockArea: 73
   ),
   Item.PlasticPlate: Recipe(
     material: {Item.RefinedOil: Natural(1), Item.Coal: Natural(50), Item.GreenLaser: Natural(1)}.toTable(),
     product: {Item.PlasticPlate: Natural(1)}.toTable(),
     duration: 10*60,
+    building: Building.Chemistry,
     unlockArea: 73
   ),
   Item.Titanium: Recipe(
     material: {Item.SulfuricAcid: Natural(1), Item.TitaniumOre: Natural(100)}.toTable(),
     product: {Item.Titanium: Natural(50)}.toTable(),
     duration: 20,
+    building: Building.Chemistry,
     unlockArea: 85
   ),
   Item.DiethylEther: Recipe(
     material: {Item.SulfuricAcid: Natural(1), Item.Ethanol: Natural(1)}.toTable(),
     product: {Item.DiethylEther: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.Chemistry,
     unlockArea: 85
   ),
   Item.GunPowder: Recipe(
     material: {Item.DiethylEther: Natural(1), Item.SulfuricAcid: Natural(2), Item.Tree: Natural(2)}.toTable(),
     product: {Item.GunPowder: Natural(20)}.toTable(),
     duration: 2*60,
+    building: Building.Chemistry,
     unlockArea: 85
   ),
   Item.LiquidNitrogen: Recipe(
     material: {Item.Nitrogen: Natural(10), Item.Compressor: Natural(1), Item.AluminiumBottle: Natural(1)}.toTable(),
     product: {Item.LiquidNitrogen: Natural(4)}.toTable(),
     duration: 2*60,
+    building: Building.Chemistry,
     unlockArea: 96
   ),
   Item.MagnetiteOre: Recipe(
     material: {Item.IronBar: Natural(10), Item.Oxygen: Natural(5), Item.GreenLaser: Natural(5)}.toTable(),
     product: {Item.MagnetiteOre: Natural(1)}.toTable(),
     duration: 6*60,
+    building: Building.Chemistry,
     unlockArea: 109
   ),
   Item.EnhancedHelium3: Recipe(
     material: {Item.AluminiumBottle: Natural(1), Item.Helium3: Natural(100), Item.Compressor: Natural(1)}.toTable(),
     product: {Item.EnhancedHelium3: Natural(1)}.toTable(),
     duration: 30*60,
+    building: Building.Chemistry,
     unlockArea: 109
   ),
   Item.ToxicBomb: Recipe(
     material: {Item.SulfuricAcid: Natural(10)}.toTable(),
     product: {Item.ToxicBomb: Natural(10)}.toTable(),
     duration: 2*60,
+    building: Building.Chemistry,
     unlockArea: 109
   ),
   Item.PolishedAmber: Recipe(
     material: {Item.Amber: Natural(5)}.toTable(),
     product: {Item.PolishedAmber: Natural(1)}.toTable(),
     duration: 30,
+    building: Building.JewelCrafting,
     unlockArea: 50
   ),
   Item.PolishedEmerald: Recipe(
     material: {Item.Emerald: Natural(5)}.toTable(),
     product: {Item.PolishedEmerald: Natural(1)}.toTable(),
     duration: 30,
+    building: Building.JewelCrafting,
     unlockArea: 50
   ),
   Item.PolishedTopaz: Recipe(
     material: {Item.Topaz: Natural(5)}.toTable(),
     product: {Item.PolishedTopaz: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.JewelCrafting,
     unlockArea: 61
   ),
   Item.PolishedRuby: Recipe(
     material: {Item.Ruby: Natural(5)}.toTable(),
     product: {Item.PolishedRuby: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.JewelCrafting,
     unlockArea: 61
   ),
   Item.PolishedDiamond: Recipe(
     material: {Item.Diamond: Natural(5)}.toTable(),
     product: {Item.PolishedDiamond: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.JewelCrafting,
     unlockArea: 61
   ),
   Item.PolishedSapphire: Recipe(
     material: {Item.Sapphire: Natural(5)}.toTable(),
     product: {Item.PolishedSapphire: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.JewelCrafting,
     unlockArea: 73
   ),
   Item.PolishedAmethyst: Recipe(
     material: {Item.Amethyst: Natural(5)}.toTable(),
     product: {Item.PolishedAmethyst: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.JewelCrafting,
     unlockArea: 73
   ),
   Item.PolishedAlexandrite: Recipe(
     material: {Item.Alexandrite: Natural(5)}.toTable(),
     product: {Item.PolishedAlexandrite: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.JewelCrafting,
     unlockArea: 85
   ),
   Item.PolishedObsidian: Recipe(
     material: {Item.Obsidian: Natural(5)}.toTable(),
     product: {Item.PolishedObsidian: Natural(1)}.toTable(),
     duration: 60,
+    building: Building.JewelCrafting,
     unlockArea: 85
   ),
   Item.SapphireCrystalGlass: Recipe(
     material: {Item.PolishedSapphire: Natural(10)}.toTable(),
     product: {Item.SapphireCrystalGlass: Natural(1)}.toTable(),
     duration: 2*60,
+    building: Building.JewelCrafting,
     unlockArea: 96
   ),
-  Item.AmberBracelet:Recipe(
+  Item.AmberBracelet: Recipe(
     material: {Item.SilverBar: Natural(1), Item.PolishedAmber: Natural(1)}.toTable(),
     product: {Item.AmberBracelet: Natural(1)}.toTable(),
     duration: 120,
+    building: Building.JewelCrafting,
     unlockArea: 0
   ),
-  Item.EmeraldRing:Recipe(
+  Item.EmeraldRing: Recipe(
     material: {Item.GoldBar: Natural(1), Item.PolishedEmerald: Natural(1)}.toTable(),
     product: {Item.EmeraldRing: Natural(1)}.toTable(),
     duration: 300,
+    building: Building.JewelCrafting,
     unlockArea: 0
   ),
-  Item.MayaCalender:Recipe(
+  Item.MayaCalender: Recipe(
     material: {Item.SilverBar: Natural(2), Item.GoldBar: Natural(10)}.toTable(),
     product: {Item.MayaCalender: Natural(1)}.toTable(),
     duration: 120,
+    building: Building.JewelCrafting,
     unlockArea: 0
   ),
-  Item.Haircomb:Recipe(
+  Item.Haircomb: Recipe(
     material: {Item.SilverBar: Natural(1), Item.PolishedAmethyst: Natural(15), Item.PolishedAlexandrite: Natural(10)}.toTable(),
     product: {Item.Haircomb: Natural(1)}.toTable(),
     duration: 120,
+    building: Building.JewelCrafting,
     unlockArea: 0
   ),
-  Item.ObsidianKnife:Recipe(
+  Item.ObsidianKnife: Recipe(
     material: {Item.PolishedObsidian: Natural(50), Item.Tree: Natural(2), Item.SilverBar: Natural(1)}.toTable(),
     product: {Item.ObsidianKnife: Natural(1)}.toTable(),
     duration: 120,
+    building: Building.JewelCrafting,
+    unlockArea: 0
+  ),
+  Item.Tree: Recipe(
+    material: {Item.TreeSeed: Natural(1), Item.Water: Natural(10)}.toTable(),
+    product: {Item.Tree: Natural(10)}.toTable(),
+    duration: 30*60,
+    building: Building.Greenhouse,
+    unlockArea: 0
+  ),
+  Item.Liana: Recipe(
+    material: {Item.LianaSeed: Natural(1), Item.Water: Natural(20)}.toTable(),
+    product: {Item.Liana: Natural(1)}.toTable(),
+    duration: 30*60,
+    building: Building.Greenhouse,
+    unlockArea: 0
+  ),
+  Item.Grape: Recipe(
+    material: {Item.GrapeSeed: Natural(1), Item.Water: Natural(15)}.toTable(),
+    product: {Item.Grape: Natural(2)}.toTable(),
+    duration: 30*60,
+    building: Building.Greenhouse,
     unlockArea: 0
   ),
 }.toTable();
@@ -647,9 +749,6 @@ proc getRecipe*(item: Item): Recipe =
     result = Recipes[item]
   except KeyError:
     raise newException(DeepTownError, fmt"Recipe not implemented: {item}")
-
-const miningStationRpm*: array[9, float] = [3.0, 4.0, 5.0, 6.0, 8.0, 12.0, 15.0, 17.0, 20.0]
-const chemicalMiningRp10m*: array[4, Natural] = [Natural(5), Natural(7), Natural(15), Natural(20)]
 
 proc getMiningStationAvailable*(floor: Natural): Table[Item, float] =
   case floor:

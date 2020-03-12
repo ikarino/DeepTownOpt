@@ -6,7 +6,7 @@ type
     product: Item
     recipe*: Recipe
     count: Natural
-    boost: Natural
+    nboost: Natural
   MiningStation* = ref object of RootObj
     floor: Natural
     lv: Natural
@@ -23,11 +23,12 @@ type
 
 # -----------------------------------------------------------------------------
 
-proc newCrafting*(product: Item): Crafting =
+proc newCrafting*(product: Item, nboost: Natural = 0): Crafting =
   Crafting(
     product: product,
     recipe: getRecipe(product),
-    count: 0
+    count: 0,
+    nboost: nboost
   )
 
 proc tick*(b: Crafting, s: Store) =
@@ -79,7 +80,7 @@ proc newMiningStation*(floor: Natural, lv: Natural,
     floor: floor,
     lv: lv,
     offline: offline,
-    speed: miningStationRpm[lv-1],
+    speed: MiningStationRpm[lv-1],
     available: getMiningStationAvailable(floor),
     second: 0,
     count: 0
@@ -114,7 +115,7 @@ proc newChemicalMining*(product: Item, lv: Natural): ChemicalMining =
   ChemicalMining(
     product: product,
     lv: lv,
-    speed: chemicalMiningRp10m[lv-1],
+    speed: ChemicalMiningRp10m[lv-1],
     second: 0,
   )
 
