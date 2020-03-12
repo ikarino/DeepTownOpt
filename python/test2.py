@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 '''
 '''
-import json, itertools, random, pprint, math
+import json
+import itertools
+import random
+import pprint
+import math
 from deap import creator, base, tools, algorithms
 import pyDeepTown
 
+
 def gl(n):
     return math.ceil(math.log10(n)/math.log10(2))
+
 
 MINES = {
     6: 3,
@@ -114,8 +120,10 @@ N_GENE = \
     gl(len(P_GH))*N_GH
 print(N_GENE)
 
+
 def create_inp(gene):
     geneNow = 0
+
     def getGene(step):
         nonlocal geneNow
         geneNow += step
@@ -126,7 +134,7 @@ def create_inp(gene):
         for _ in range(num):
             floor = getGene(7) % AREA_MAX + 1
             mining_stations.append(
-                { "floor": floor, "lv": level },
+                {"floor": floor, "lv": level},
             )
     chemical_minings = []
     for level, num in CMS.items():
@@ -153,24 +161,26 @@ def create_inp(gene):
         craftings.append(product)
 
     jsonDict = {
-      "InitialStore": {
-          "Water": 500,
-          "TreeSeed": 500,
-          "LianaSeed": 500,
-          "GrapeSeed": 500,
-      },
-      "MiningStation": mining_stations,
-      "ChemicalMining": chemical_minings,
-      "Crafting": craftings,
-      "bots": [],
-      "config": {
-        "seed": 200
-      }
+        "InitialStore": {
+            "Water": 100,
+            "TreeSeed": 100,
+            "LianaSeed": 100,
+            "GrapeSeed": 100,
+        },
+        "MiningStation": mining_stations,
+        "ChemicalMining": chemical_minings,
+        "Crafting": craftings,
+        "bots": [],
+        "config": {
+            "seed": 200
+        }
     }
     return jsonDict
 
+
 def wrapper():
     result = {}
+
     def run(gene):
         nonlocal result
         key = "".join(map(str, gene))
@@ -183,6 +193,7 @@ def wrapper():
         return pyDeepTown.runCoin(json.dumps(jsonDict)),
     return run
 
+
 def main():
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -190,7 +201,8 @@ def main():
     toolbox = base.Toolbox()
 
     toolbox.register("attr_bool", random.randint, 0, 1)
-    toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, n=N_GENE)
+    toolbox.register("individual", tools.initRepeat,
+                     creator.Individual, toolbox.attr_bool, n=N_GENE)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
     run = wrapper()
@@ -199,8 +211,8 @@ def main():
     toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
-    population = toolbox.population(n=100)
-    NGEN=40
+    population = toolbox.population(n=2000)
+    NGEN = 70
     for gen in range(NGEN):
         offspring = algorithms.varAnd(population, toolbox, cxpb=0.5, mutpb=0.1)
         fits = toolbox.map(toolbox.evaluate, offspring)
@@ -210,10 +222,14 @@ def main():
 
         print("===== GEN %02d =====" % gen)
         gene = tools.selBest(population, k=1)[0]
-        print(run(gene))
-        pprint.pprint(create_inp(gene))
+        print(run(gene)[0]*60*60*24/1000)
+        inp = create_inp(gene)
+        with open("result/%03d.json" % (gen+1), "w") as f:
+            json.dump(inp, f, indent=4)
+        pprint.pprint(inp)
     top10 = tools.selBest(population, k=10)
     print(top10)
+
 
 if __name__ == "__main__":
     main()

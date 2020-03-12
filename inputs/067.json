@@ -1,0 +1,151 @@
+{
+    "InitialStore": {
+        "Water": 100,
+        "TreeSeed": 100,
+        "LianaSeed": 100,
+        "GrapeSeed": 100
+    },
+    "MiningStation": [
+        {
+            "floor": 50,
+            "lv": 6
+        },
+        {
+            "floor": 68,
+            "lv": 6
+        },
+        {
+            "floor": 54,
+            "lv": 6
+        },
+        {
+            "floor": 75,
+            "lv": 7
+        },
+        {
+            "floor": 51,
+            "lv": 7
+        },
+        {
+            "floor": 63,
+            "lv": 7
+        },
+        {
+            "floor": 75,
+            "lv": 7
+        },
+        {
+            "floor": 75,
+            "lv": 7
+        },
+        {
+            "floor": 75,
+            "lv": 7
+        },
+        {
+            "floor": 71,
+            "lv": 7
+        },
+        {
+            "floor": 53,
+            "lv": 7
+        },
+        {
+            "floor": 65,
+            "lv": 7
+        },
+        {
+            "floor": 75,
+            "lv": 7
+        },
+        {
+            "floor": 75,
+            "lv": 7
+        },
+        {
+            "floor": 64,
+            "lv": 7
+        },
+        {
+            "floor": 71,
+            "lv": 7
+        },
+        {
+            "floor": 68,
+            "lv": 7
+        },
+        {
+            "floor": 64,
+            "lv": 8
+        }
+    ],
+    "ChemicalMining": [
+        {
+            "product": "Sodium",
+            "lv": 2
+        },
+        {
+            "product": "Sulfur",
+            "lv": 3
+        },
+        {
+            "product": "Silicon",
+            "lv": 4
+        },
+        {
+            "product": "Sulfur",
+            "lv": 4
+        },
+        {
+            "product": "Sodium",
+            "lv": 4
+        },
+        {
+            "product": "Sodium",
+            "lv": 4
+        },
+        {
+            "product": "Silicon",
+            "lv": 4
+        },
+        {
+            "product": "Sulfur",
+            "lv": 4
+        }
+    ],
+    "Crafting": [
+        "GoldBar",
+        "GoldBar",
+        "GoldBar",
+        "SilverBar",
+        "GoldBar",
+        "Glass",
+        "Glass",
+        "GoldBar",
+        "SolidPropellant",
+        "LabFlask",
+        "Accumulator",
+        "CopperNail",
+        "Wire",
+        "AluminiumBottle",
+        "LabFlask",
+        "Wire",
+        "CleanWater",
+        "SulfuricAcid",
+        "Rubber",
+        "PolishedEmerald",
+        "MayaCalender",
+        "PolishedDiamond",
+        "PolishedDiamond",
+        "PolishedRuby",
+        "PolishedEmerald",
+        "PolishedEmerald",
+        "PolishedDiamond",
+        "Tree",
+        "Tree"
+    ],
+    "bots": [],
+    "config": {
+        "seed": 200
+    }
+}

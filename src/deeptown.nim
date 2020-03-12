@@ -4,15 +4,16 @@
 import json, strformat
 import miner, data
 
-proc run(seconds = 60*60*24, inputfile: string) =
+proc deeptown(seconds = 60*60*24, inputfile: string) =
   let j = inputfile.parseFile()
   let m = newMiner(j)
   let coins = m.calcCoin(seconds)
   echo fmt"coins: {coins:>.1f}/sec"
+  echo fmt"coins: {coins*60*60*24/1000000:>.1f}m/day"
   echo m.s
 
 when isMainModule:
   import cligen
-  dispatch(run, help = {
+  dispatch(deeptown, help = {
     "seconds": "time to run[s]"
   })
