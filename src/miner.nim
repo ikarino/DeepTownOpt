@@ -8,6 +8,7 @@ type
     mss: seq[MiningStation]
     cs: seq[Crafting]
     cms: seq[ChemicalMining]
+    mrbs: seq[MineResourceBot]
     offline: bool
     tradingLevel: Natural
 
@@ -16,7 +17,9 @@ proc newMiner*(j: JsonNode): Miner =
   var mss: seq[MiningStation]
   var cms: seq[ChemicalMining]
   var cs: seq[Crafting]
+  var mrbs: seq[MineResourceBot]
 
+  # config -----
   let offline = j["config"].getOrDefault("offline").getBool(false)
   let tradingLevel = j["config"].getOrDefault("tradingLevel").getInt().Natural
   let seed = j["config"].getOrDefault("seed").getInt(0)
@@ -26,6 +29,28 @@ proc newMiner*(j: JsonNode): Miner =
   else:
     randomize()
 
+  # bot -----
+  var nboost: Table[Building, Natural] = {
+    Building.Smelting: Natural(0),
+    Building.Crafting: Natural(0),
+    Building.Chemistry: Natural(0),
+    Building.JewelCrafting: Natural(0),
+    Building.Greenhouse: Natural(0)
+  }.toTable()
+  for node in j["bots"].getElems():
+    let action = parseEnum[BotAction](node["action"].getStr())
+    if action == BotAction.BoostSmelting:
+      nboost[Building.Smelting] += 1
+    elif action == BotAction.BoostCrafting:
+      nboost[Building.Crafting] += 1
+    elif action == BotAction.BoostChemistryFloorProduction:
+      nboost[Building.Chemistry] += 1
+    elif action == BotAction.BoostJewelCrafting:
+      nboost[Building.JewelCrafting] += 1
+    elif action == BotAction.BoostGardening:
+      nboost[Building.Greenhouse] += 1
+
+  # each spots -----
   for node in j["MiningStation"].getElems():
     mss.add(newMiningStation(
       node["floor"].getInt().Natural,
@@ -40,8 +65,11 @@ proc newMiner*(j: JsonNode): Miner =
     ))
 
   for node in j["Crafting"].getElems():
+    let product = parseEnum[Item](node.getStr())
+    let r = getRecipe(product)
     cs.add(newCrafting(
-      parseEnum[Item](node.getStr())
+      product,
+      nboost[r.building]
     ))
 
   for k in j["InitialStore"].getFields().keys:
@@ -56,6 +84,7 @@ proc newMiner*(j: JsonNode): Miner =
     mss: mss,
     cms: cms,
     cs: cs,
+    mrbs: mrbs,
     offline: offline,
     tradingLevel: tradingLevel
   )

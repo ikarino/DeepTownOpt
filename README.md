@@ -18,6 +18,7 @@ nimble build
 
 ## Supported Bot tasks
 
+- Boost Smelting
 - Boost Crafting
 - Boost Gardening
 - Mine Resources

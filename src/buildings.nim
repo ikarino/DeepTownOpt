@@ -20,6 +20,17 @@ type
     lv: Natural
     speed: Natural
     second: Natural
+  MineResourceBot* = ref object of RootObj
+    product: Item
+    duration: Natural
+    second: Natural
+  BotAction* = enum
+    BoostSmelting = "BoostSmelting"
+    BoostCrafting = "BoostCrafting"
+    BoostGardening = "BoostGardening"
+    MineResources = "MineResources"
+    BoostJewelcrafting = "BoostJewelcrafting"
+    BoostChemistryFloorProduction = "BoostChemistryFloorProduction"
 
 # -----------------------------------------------------------------------------
 
@@ -121,3 +132,23 @@ proc tick*(cm: ChemicalMining, s: var Store) =
   if cm.second == 10*60:
     s[cm.product] += cm.speed
     cm.second = 0
+
+# -----------------------------------------------------------------------------
+
+proc newMineResouceBot*(product: Item, offline: bool): MineResourceBot =
+  var duration: Natural
+  if offline:
+    duration = 20
+  else:
+    duration = 3
+  MineResourceBot(
+    product: product,
+    duration: duration,
+    second: 0
+  )
+
+proc tick*(mrb: MineResourceBot, s: var Store) =
+  mrb.second += 1
+  if mrb.second == mrb.duration:
+    s[mrb.product] += 1
+    mrb.second = 0

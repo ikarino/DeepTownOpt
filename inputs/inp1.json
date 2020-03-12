@@ -1,4 +1,7 @@
 {
+  "InitialStore": {
+    "Silicon": 10
+  },
   "MiningStation": [
     { "floor": 1, "lv": 6 },
     { "floor": 2, "lv": 6 },
@@ -20,13 +23,18 @@
     { "product": "Silicon", "lv": 4 }
   ],
   "Crafting": ["Glass"],
-  "InitialStore": {
-    "Silicon": 10
-  },
+  "bots": [
+    {
+      "action": "BoostSmelting"
+    },
+    {
+      "action": "MineResources",
+      "resource": "coal"
+    }
+  ],
   "config": {
     "offline": false,
     "tradingLevel": 10,
     "seed": 200
-  },
-  "bots": []
+  }
 }
