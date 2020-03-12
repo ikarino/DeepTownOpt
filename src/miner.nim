@@ -50,7 +50,7 @@ proc newMiner*(j: JsonNode): Miner =
     elif action == BotAction.BoostGardening:
       nboost[Building.Greenhouse] += 1
 
-  # each spots -----
+  # spots -----
   for node in j["MiningStation"].getElems():
     mss.add(newMiningStation(
       node["floor"].getInt().Natural,
@@ -72,12 +72,13 @@ proc newMiner*(j: JsonNode): Miner =
       nboost[r.building]
     ))
 
+  # init warehosue -----
   for k in j["InitialStore"].getFields().keys:
     let item = parseEnum[Item](k)
     let num = j["InitialStore"][k].getInt().Natural
     s[item] = num
 
-  s.init(mss, cms, cs)
+  s.init(mss, cms, cs, mrbs)
 
   Miner(
     s: s,

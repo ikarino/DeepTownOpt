@@ -27,7 +27,7 @@ nimble build
 
 ## Calculation formula for duration time with Bot boost
 
-Currently, the duration of crafting formula is as follows.
+Currently, the formula of crafting duration is as follows.
 
 ```nim
 numBot = 2
@@ -59,8 +59,9 @@ Not supported eternally.
   - [x] Chemistry
   - [x] JewelCrafting
   - [x] Greenhouse
-  - [ ] Bots
+  - [x] Bots
   - [ ] ~~OilPump~~
   - [ ] ~~WaterCollector~~
   - [x] Online/Offline
+  - [ ] input cheker
 - [ ] optimizer

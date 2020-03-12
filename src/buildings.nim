@@ -66,6 +66,7 @@ proc init*(
   mss: seq[MiningStation],
   cms: seq[ChemicalMining],
   cs: seq[Crafting],
+  mrbs: seq[MineResourceBot]
   ) =
   for ms in mss:
     for item in ms.available.keys:
@@ -81,6 +82,9 @@ proc init*(
     for item in c.recipe.product.keys:
       if not s.hasKey(item):
         s[item] = 0
+  for mrb in mrbs:
+    if not s.hasKey(mrb.product):
+      s[mrb.product] = 0
 
 
 # -----------------------------------------------------------------------------
