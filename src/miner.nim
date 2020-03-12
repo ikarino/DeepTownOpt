@@ -1,4 +1,4 @@
-import tables, json, strutils
+import tables, json, strutils, random
 
 import data, buildings
 
@@ -17,8 +17,14 @@ proc newMiner*(j: JsonNode): Miner =
   var cms: seq[ChemicalMining]
   var cs: seq[Crafting]
 
-  let offline = j["config"]["offline"].getBool()
-  let tradingLevel = j["config"]["tradingLevel"].getInt().Natural
+  let offline = j["config"].getOrDefault("offline").getBool(false)
+  let tradingLevel = j["config"].getOrDefault("tradingLevel").getInt().Natural
+  let seed = j["config"].getOrDefault("seed").getInt(0)
+
+  if seed != 0:
+    randomize(seed)
+  else:
+    randomize()
 
   for node in j["MiningStation"].getElems():
     mss.add(newMiningStation(

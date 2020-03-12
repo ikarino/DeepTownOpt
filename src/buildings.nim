@@ -1,4 +1,4 @@
-import tables, random
+import tables, random, math
 import data
 
 type
@@ -43,7 +43,7 @@ proc tick*(b: Crafting, s: Store) =
         return
     for k, v in b.recipe.material.mpairs:
       s[k] -= v
-    b.count = b.recipe.duration
+    b.count = round(b.recipe.duration.float / 1.205^b.nboost).Natural
 
 proc cancel*(b: Crafting, s: Store) =
   if b.count > 0:
@@ -108,14 +108,11 @@ proc tick*(m: MiningStation, s: var Store) =
 
 # -----------------------------------------------------------------------------
 
-# const cmValidProducts = [Item.Silicon, Item.Sulfur, Item.Sodium, Item.Nitrogen]
-# const cmValidLevel = [1, 2, 3, 4]
-
 proc newChemicalMining*(product: Item, lv: Natural): ChemicalMining =
   ChemicalMining(
     product: product,
     lv: lv,
-    speed: ChemicalMiningRp10m[lv-1],
+    speed: ChemicalMiningRp10m[product][lv-1],
     second: 0,
   )
 

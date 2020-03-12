@@ -31,8 +31,10 @@ Currently, the duration of crafting formula is as follows.
 ```nim
 numBot = 2
 duration = 60
-boostedDuration = round(duration.float / (1+0.1668*numBot))
+boostedDuration = round(duration.float / 1.205^numBot)
 ```
+
+This formula satisfys the table below.
 
 | Item       | Original[s] | Single Boost[s] | Double Boost[s] |
 | :--------- | ----------: | --------------: | --------------: |
@@ -40,7 +42,7 @@ boostedDuration = round(duration.float / (1+0.1668*numBot))
 | IronBar    |          15 |              12 |                 |
 | SteelBar   |          45 |              37 |                 |
 | GoldBar    |          60 |              49 |              41 |
-| SteelPlate |         120 |             109 |                 |
+| SteelPlate |         120 |              99 |                 |
 
 ## Boosting with crystals
 
@@ -56,8 +58,8 @@ Not supported eternally.
   - [x] Chemistry
   - [x] JewelCrafting
   - [x] Greenhouse
-  - [ ] OilPump
   - [ ] Bots
+  - [ ] ~~OilPump~~
   - [ ] ~~WaterCollector~~
   - [x] Online/Offline
 - [ ] optimizer

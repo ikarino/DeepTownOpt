@@ -25,7 +25,8 @@
   },
   "config": {
     "offline": false,
-    "tradingLevel": 10
+    "tradingLevel": 10,
+    "seed": 200
   },
   "bots": []
 }

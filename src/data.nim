@@ -142,7 +142,12 @@ type
 
 
 const MiningStationRpm*: array[9, float] = [3.0, 4.0, 5.0, 6.0, 8.0, 12.0, 15.0, 17.0, 20.0]
-const ChemicalMiningRp10m*: array[4, Natural] = [Natural(5), Natural(7), Natural(15), Natural(20)]
+const ChemicalMiningRp10m*: Table[Item, array[4, Natural]] = {
+  Item.Silicon: [Natural(5), Natural(7), Natural(15), Natural(20)],
+  Item.Sulfur: [Natural(5), Natural(7), Natural(15), Natural(20)],
+  Item.Sodium: [Natural(5), Natural(7), Natural(15), Natural(20)],
+  Item.Nitrogen: [Natural(3), Natural(4), Natural(9), Natural(12)],
+}.toTable()
 const BotTaskBoostRate* = 0.1668
 
 proc `$`*(s: Store): string =
