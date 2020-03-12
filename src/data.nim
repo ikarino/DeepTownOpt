@@ -262,6 +262,10 @@ proc toCoin* (s: Store, portalLevel: Natural): Natural =
     of Item.Haircomb: result += (23769*num.float*(1+0.02*(portalLevel.float-1))).round.Natural
     of Item.ObsidianKnife: result += (47520*num.float*(1+0.02*(portalLevel.float-1))).round.Natural
 
+proc toTable* (s: Store): Table[string, int] =
+  for k, v in s.pairs:
+    result[k.repr] = v.int
+
 
 proc `$`* (r: Recipe): string =
   result = "Recipe\n"

@@ -1,3 +1,7 @@
 # binary
 deeptown
 deeptown.exe
+
+# pylib
+python/*.so
+python/*.pyd
