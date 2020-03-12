@@ -1,7 +1,7 @@
 # DeepTownOpt
 
 Rock Bites Game "Deep town" emulator written in [Nim](https://nim-lang.org).
-And also, optimizer powered by [pyomo](http://www.pyomo.org/) is comming soon !
+And also, optimizer powered by [DEAP](https://github.com/DEAP/deap) is comming soon !
 
 I'm now on 677m, so not all covered.
 

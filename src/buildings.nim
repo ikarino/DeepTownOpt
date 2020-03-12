@@ -108,7 +108,7 @@ proc getMaterial*(m: MiningStation): Item =
     ptot += p
     if r < ptot:
       return item
-  raise newException(DeepTownError, "proc getMaterial Failed")
+  raise newException(DeepTownError, "proc getMaterial Failed: " & $m.floor)
 
 proc tick*(m: MiningStation, s: var Store) =
   m.second += 1

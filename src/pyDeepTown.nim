@@ -7,3 +7,9 @@ proc run(jsonString: string): tuple[coin: float, store: Table[string, int]] {.ex
   let coins = m.calcCoin()
 
   result = (coin: coins, store: m.s.toTable())
+
+proc runCoin(jsonString: string): float {.exportpy.} =
+  let m = newMiner(jsonString.parseJson)
+  let coins = m.calcCoin()
+
+  result = coins
