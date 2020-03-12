@@ -148,11 +148,10 @@ const ChemicalMiningRp10m*: Table[Item, array[4, Natural]] = {
   Item.Sodium: [Natural(5), Natural(7), Natural(15), Natural(20)],
   Item.Nitrogen: [Natural(3), Natural(4), Natural(9), Natural(12)],
 }.toTable()
-const BotTaskBoostRate* = 0.1668
 
 proc `$`*(s: Store): string =
   result = "Stored Items:\n"
-  for k, v in s.mpairs:
+  for k, v in s.pairs:
     result &= fmt"  - {k:<20}: {v}" & "\n"
 
 proc toCoin* (s: Store, portalLevel: Natural): Natural =

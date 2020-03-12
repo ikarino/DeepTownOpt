@@ -4,7 +4,7 @@ import data, buildings
 
 type
   Miner = ref object of RootObj
-    s: Store
+    s*: Store
     mss: seq[MiningStation]
     cs: seq[Crafting]
     cms: seq[ChemicalMining]
@@ -98,7 +98,7 @@ proc tick(miner: Miner) =
   for c in miner.cs:
     c.tick(miner.s)
 
-proc calcCoin*(m: Miner, seconds = 60*60*12): float =
+proc calcCoin*(m: Miner, seconds = 60*60*24): float =
   for t in 1..seconds:
     m.tick()
 
